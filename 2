@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#78A6A0">
+  <title>Target Timer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Montserrat', -apple-system, sans-serif;
+    }
+
+    html {
+      height: 100%;
+      background: #78A6A0;
+    }
+
+    body {
+      background: #78A6A0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: env(safe-area-inset-top, 24px) 24px env(safe-area-inset-bottom, 24px);
+      color: #111820;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 390px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .num-font {
+      font-family: 'Bebas Neue', 'Impact', sans-serif !important;
+      letter-spacing: 2.4px;
+      line-height: 1;
+    }
+
+    .display-card {
+      background: #FFF4D6;
+      border-radius: 26px;
+      padding: 26px 22px 24px;
+      text-align: center;
+      border: 1px solid rgba(17, 24, 32, 0.08);
+      box-shadow: 0 14px 34px rgba(20, 30, 40, 0.10);
+    }
+
+    .info-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #5f6b76;
+      letter-spacing: 1px;
+    }
+
+    .info-bar #current-clock {
+      font-size: 21px;
+      color: #111820;
+    }
+
+    .countdown-box {
+      margin: 12px 0 10px;
+    }
+
+    .countdown-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2.4px;
+      color: #8a96a3;
+    }
+
+    .countdown-timer {
+      font-size: clamp(82px, 24vw, 106px);
+      color: #0a0f14;
+      margin: 6px 0 4px;
+    }
+
+    .target-box {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 8px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(17, 24, 32, 0.10);
+    }
+
+    .target-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #5f6b76;
+    }
+
+    .target-digits {
+      font-size: 30px;
+      color: #1a232d;
+    }
+
+    /* 画面ロック防止の状態表示 */
+    .status-note {
+      margin-top: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #8a96a3;
+      min-height: 14px;
+      font-family: -apple-system, sans-serif;
+    }
+    .status-note.on { color: #2f7a55; }
+    .status-note.warn { color: #c73a3a; }
+
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      width: 100%;
+    }
+
+    .key-btn {
+      appearance: none;
+      -webkit-appearance: none;
+      border: 1px solid rgba(17, 24, 32, 0.08);
+      background: #FFF4D6;
+      height: 62px;
+      border-radius: 18px;
+      font-size: 30px;
+      color: #111820;
+      box-shadow: 0 5px 14px rgba(20, 30, 40, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .key-btn:active {
+      background: #f4e7c2;
+      transform: scale(0.96);
+    }
+
+    .key-btn.action-clear {
+      font-family: 'Montserrat', sans-serif !important;
+      font-size: 18px;
+      font-weight: 700;
+      color: #c73a3a;
+      background: #FFF4D6;
+      border-color: rgba(200, 80, 80, 0.3);
+    }
+
+    .key-btn.action-back {
+      font-family: 'Montserrat', sans-serif !important;
+      font-size: 21px;
+      color: #5f6b76;
+    }
+
+    .control-area {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .btn-main {
+      flex: 1;
+      height: 58px;
+      border-radius: 18px;
+      border: none;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 2.4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-main:active {
+      transform: scale(0.96);
+    }
+
+    .btn-start {
+      background: #173A35;
+      color: #FFF4D6;
+      border: none;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+    }
+
+    .btn-stop {
+      background: #c43b3b;
+      color: #ffffff;
+      box-shadow: 0 8px 20px rgba(160, 40, 40, 0.3);
+      display: none;
+    }
+
+    .alarming {
+      animation: pulseAlert 0.7s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseAlert {
+      from { background: #78A6A0; }
+      to { background-color: #e07070; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="display-card">
+    <div class="info-bar">
+      <span>NOW</span>
+      <span id="current-clock" class="num-font">--:--:--</span>
+    </div>
+
+    <div class="countdown-box">
+      <div class="countdown-label">REMAINING</div>
+      <div class="countdown-timer num-font" id="countdown-display">--:--:--</div>
+    </div>
+
+    <div class="target-box">
+      <span class="target-label">TARGET</span>
+      <span class="target-digits num-font" id="target-digits">_ _ : _ _</span>
+    </div>
+
+    <div class="status-note" id="status-note"></div>
+  </div>
+
+  <div class="keypad-grid" id="keypad">
+    <button type="button" class="key-btn num-font" data-val="1">1</button>
+    <button type="button" class="key-btn num-font" data-val="2">2</button>
+    <button type="button" class="key-btn num-font" data-val="3">3</button>
+    <button type="button" class="key-btn num-font" data-val="4">4</button>
+    <button type="button" class="key-btn num-font" data-val="5">5</button>
+    <button type="button" class="key-btn num-font" data-val="6">6</button>
+    <button type="button" class="key-btn num-font" data-val="7">7</button>
+    <button type="button" class="key-btn num-font" data-val="8">8</button>
+    <button type="button" class="key-btn num-font" data-val="9">9</button>
+    <button type="button" class="key-btn action-clear" id="btn-clear">AC</button>
+    <button type="button" class="key-btn num-font" data-val="0">0</button>
+    <button type="button" class="key-btn action-back" id="btn-back">⌫</button>
+  </div>
+
+  <div class="control-area">
+    <button type="button" class="btn-main btn-start" id="start-btn">START</button>
+    <button type="button" class="btn-main btn-stop" id="stop-btn">STOP</button>
+  </div>
+</div>
+
+<script>
+  let rawDigits = "";
+  let timerInterval = null;
+  let targetDate = null;
+  let audioCtx = null;
+  let alarmInterval = null;
+  let wakeLock = null;
+  let timerRunning = false;
+
+  const statusNote = document.getElementById('status-note');
+
+  function setStatus(text, cls) {
+    statusNote.textContent = text;
+    statusNote.className = 'status-note' + (cls ? ' ' + cls : '');
+  }
+
+  // ===== 画面ロック防止（Screen Wake Lock API） =====
+  async function requestWakeLock() {
+    if (!('wakeLock' in navigator)) {
+      setStatus('画面ロック防止に非対応です。自動ロックを「なし」にしてください', 'warn');
+      return;
+    }
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      setStatus('画面ON維持中（画面は自動で消えません）', 'on');
+      wakeLock.addEventListener('release', () => {
+        wakeLock = null;
+        if (timerRunning) setStatus('画面ON維持が解除されました', 'warn');
+      });
+    } catch (e) {
+      setStatus('画面ロック防止に失敗しました。自動ロックを「なし」にしてください', 'warn');
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLock) {
+      wakeLock.release().catch(() => {});
+      wakeLock = null;
+    }
+    setStatus('');
+  }
+
+  // アプリ切替などから戻ったとき：Wake Lock を取り直し、時間を即チェック
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      if (timerRunning) {
+        requestWakeLock();
+        tick();
+      }
+      if (alarmInterval) resumeAudio();
+    }
+  });
+
+  // ===== 音声 =====
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  function resumeAudio() {
+    const ctx = getAudioCtx();
+    if (ctx.state !== 'running') ctx.resume().catch(() => {});
+  }
+
+  // iPhone の音声制限を解除（ボタン操作のタイミングで無音を一瞬再生）
+  function unlockAudio() {
+    try {
+      // Safari 17+：マナーモードでも鳴りやすくする
+      if (navigator.audioSession) navigator.audioSession.type = 'playback';
+    } catch (e) {}
+    const ctx = getAudioCtx();
+    resumeAudio();
+    try {
+      const buffer = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.connect(ctx.destination);
+      src.start(0);
+    } catch (e) {}
+  }
+
+  function playBeep() {
+    try {
+      const ctx = getAudioCtx();
+      if (ctx.state !== 'running') ctx.resume().catch(() => {});
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.18);
+    } catch(e) {}
+  }
+
+  function startAlarmSound() {
+    if (alarmInterval) return;
+    document.body.classList.add('alarming');
+    resumeAudio();
+    playBeep();
+    alarmInterval = setInterval(playBeep, 400);
+  }
+
+  function stopAlarmSound() {
+    document.body.classList.remove('alarming');
+    if (alarmInterval) {
+      clearInterval(alarmInterval);
+      alarmInterval = null;
+    }
+  }
+
+  // ===== 時計・入力 =====
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('current-clock').textContent =
+      `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  function renderInput() {
+    let padded = rawDigits.padEnd(4, '_');
+    document.getElementById('target-digits').textContent =
+      `${padded.slice(0, 2)} : ${padded.slice(2, 4)}`;
+  }
+
+  document.querySelectorAll('.key-btn[data-val]').forEach(btn => {
+    btn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (rawDigits.length < 4) {
+        rawDigits += btn.getAttribute('data-val');
+        renderInput();
+      }
+    });
+  });
+
+  document.getElementById('btn-clear').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    rawDigits = "";
+    renderInput();
+  });
+
+  document.getElementById('btn-back').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    rawDigits = rawDigits.slice(0, -1);
+    renderInput();
+  });
+
+  // ===== START =====
+  // iPhone では音声の解除・画面ロック防止は「タップ（click）」のタイミングでないと
+  // 許可されないことがあるため、pointerdown ではなく click を使う
+  document.getElementById('start-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (rawDigits.length !== 4) {
+      alert("4桁の時刻を入力してください（例: 1530）");
+      return;
+    }
+
+    const hours = parseInt(rawDigits.slice(0, 2), 10);
+    const minutes = parseInt(rawDigits.slice(2, 4), 10);
+
+    if (hours > 23 || minutes > 59) {
+      alert("有効な時刻を入力してください（00:00〜23:59）");
+      return;
+    }
+
+    unlockAudio();
+    requestWakeLock();
+
+    const now = new Date();
+    targetDate = new Date();
+    targetDate.setHours(hours, minutes, 0, 0);
+
+    if (targetDate.getTime() <= now.getTime()) {
+      targetDate.setDate(targetDate.getDate() + 1);
+    }
+
+    timerRunning = true;
+    document.getElementById('start-btn').style.display = 'none';
+    document.getElementById('stop-btn').style.display = 'flex';
+    document.getElementById('keypad').style.opacity = '0.35';
+    document.getElementById('keypad').style.pointerEvents = 'none';
+
+    tick();
+    timerInterval = setInterval(tick, 500);
+  });
+
+  function tick() {
+    if (!targetDate || !timerRunning) return;
+    const now = new Date();
+    const diff = targetDate.getTime() - now.getTime();
+
+    if (diff <= 0) {
+      document.getElementById('countdown-display').textContent = "00:00:00";
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerRunning = false;
+      startAlarmSound();
+      return;
+    }
+
+    const totalSeconds = Math.ceil(diff / 1000);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+
+    document.getElementById('countdown-display').textContent =
+      `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  // ===== STOP =====
+  document.getElementById('stop-btn').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    timerRunning = false;
+    stopAlarmSound();
+    releaseWakeLock();
+    document.getElementById('start-btn').style.display = 'flex';
+    document.getElementById('stop-btn').style.display = 'none';
+    document.getElementById('keypad').style.opacity = '1';
+    document.getElementById('keypad').style.pointerEvents = 'auto';
+    document.getElementById('countdown-display').textContent = "--:--:--";
+  });
+</script>
+
+</body>
+</html>
